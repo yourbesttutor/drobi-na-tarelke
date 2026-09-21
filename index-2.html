@@ -1,0 +1,1566 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>Дроби на тарелке</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Mulish:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Deliberate single-world design: a warm wood-fired pizzeria/bakery
+     counter. Background and every color are painted explicitly so the
+     page holds its own look on any host ground, in any viewer theme. */
+
+  :root{
+    --board: #241209;
+    --board-2: #3A2013;
+    --board-3: #472819;
+    --line: #573221;
+    --ink: #F6EEE2;
+    --muted: #CBAF93;
+    --muted-2: #98795C;
+    --basil-ui: #4CE863;
+    --shadow: 0 24px 48px -22px rgba(0,0,0,.65);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+
+  body{
+    background: radial-gradient(130% 120% at 50% -10%, #3A2013 0%, var(--board) 55%, #170A04 100%);
+    color: var(--ink);
+    font-family: 'Mulish', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 32px 20px 60px;
+  }
+
+  h1, .display{
+    font-family: 'Lilita One', system-ui, sans-serif;
+    font-weight: 400;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  .wrap{
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .topbar{ border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+  .topbar h1{ font-size: clamp(34px, 6.5vw, 52px); letter-spacing: .01em; }
+  .topbar p{ margin: 6px 0 0; color: var(--muted); font-size: 14px; max-width: 60ch; }
+
+  .layout{ display:flex; flex-direction:column; gap: 16px; }
+
+  .menu-wrap{ position: relative; z-index: 30; align-self: flex-start; }
+  .menu-toggle{
+    display:flex; align-items:center; gap: 9px;
+    font-family:'Lilita One', sans-serif; font-weight:400; font-size: 15px;
+    letter-spacing:.01em;
+    color: #241209; background: var(--basil-ui);
+    border: none; border-radius: 999px;
+    padding: 11px 20px 11px 16px; cursor: pointer;
+    box-shadow: var(--shadow), 0 0 18px rgba(76,232,99,.4);
+    transition: transform .16s cubic-bezier(.34,1.56,.64,1), background .15s, box-shadow .15s;
+  }
+  .menu-toggle:hover{ background:#6BF07E; transform: translateY(-2px); box-shadow: var(--shadow), 0 0 26px rgba(76,232,99,.6); }
+  .menu-toggle:active{ transform: translateY(0) scale(.95); }
+  .menu-toggle:focus-visible{ outline: 2px solid var(--ink); outline-offset: 2px; }
+  .menu-toggle .burger-ico{ font-size: 17px; line-height:1; }
+  .menu-toggle[aria-expanded="true"]{ background: var(--ink); }
+
+  .sidebar{
+    position: absolute; top: calc(100% + 10px); left: 0;
+    display:flex; flex-direction:column; gap: 4px;
+    background: var(--board-2);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 10px;
+    width: min(280px, 88vw);
+    max-height: 72vh; overflow-y: auto;
+    box-shadow: var(--shadow);
+    animation: dropIn .16s ease;
+  }
+  .sidebar[hidden]{ display: none; }
+  @keyframes dropIn{ from{ opacity:0; transform: translateY(-6px); } to{ opacity:1; transform: translateY(0); } }
+  .nav-btn{
+    display:flex; align-items:center; gap: 8px;
+    font-family:'Mulish', sans-serif; font-weight: 700; font-size: 13.5px;
+    color: var(--muted); background: transparent;
+    border: 1px solid transparent; border-radius: 12px;
+    padding: 10px 12px; cursor:pointer; text-align:left;
+    white-space: nowrap;
+    transition: background .15s, color .15s, border-color .15s, transform .12s;
+  }
+  .nav-btn:hover{ background: var(--board-3); color: var(--ink); transform: translateX(2px); }
+  .nav-btn.active{ background: var(--ink); color: #241209; border-color: var(--ink); }
+  .nav-btn:focus-visible{ outline: 2px solid var(--basil-ui); outline-offset: 2px; }
+  .nav-ico{
+    display:inline-flex; align-items:center; justify-content:center;
+    width: 26px; height: 26px; flex: 0 0 26px;
+    font-size: 15px; line-height: 1;
+  }
+  .nav-ico-badge{
+    border-radius: 8px;
+    background: radial-gradient(circle, rgba(246,238,226,.85) 0%, rgba(246,238,226,.4) 60%, rgba(246,238,226,0) 82%);
+    font-size: 14px;
+  }
+
+  .content{ flex: 1 1 auto; min-width: 0; }
+
+  .head{ border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 18px; }
+  .eyebrow{
+    display:block;
+    font-size: 12.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--basil-ui);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .head h1{ font-size: clamp(26px, 4vw, 32px); letter-spacing: .01em; }
+  .head p{
+    margin: 8px 0 0;
+    max-width: 58ch;
+    color: var(--muted);
+    font-size: 14.5px;
+    line-height: 1.55;
+  }
+
+  .stage{
+    display: grid;
+    grid-template-columns: minmax(0,1fr) minmax(260px, 320px);
+    gap: 20px;
+    align-items: stretch;
+  }
+  @media (max-width: 720px){ .stage{ grid-template-columns: 1fr; } }
+
+  .panel{
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+  }
+
+  /* ---------- wooden board panel ---------- */
+  .board-panel{
+    padding: 22px;
+    display:flex;
+    flex-direction: column;
+    align-items:center;
+    justify-content:center;
+    min-height: 440px;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(91deg, rgba(0,0,0,.16) 0px, rgba(0,0,0,.16) 1px, transparent 1px, transparent 5px),
+      repeating-linear-gradient(91deg, rgba(255,214,158,.05) 0px, transparent 2px, transparent 130px, rgba(0,0,0,.14) 132px, transparent 134px),
+      radial-gradient(ellipse 140px 90px at 22% 30%, rgba(0,0,0,.16), transparent 70%),
+      radial-gradient(ellipse 110px 70px at 78% 74%, rgba(0,0,0,.14), transparent 70%),
+      linear-gradient(100deg, #8A5230, #723F22 28%, #7E4A28 55%, #64371D 100%);
+  }
+  .board-panel::after{
+    content:'';
+    position:absolute; inset:0;
+    box-shadow: inset 0 0 70px rgba(0,0,0,.45);
+    pointer-events:none;
+  }
+  .board-panel.cake-mode{
+    background:
+      repeating-linear-gradient(91deg, rgba(255,255,255,.10) 0px, rgba(255,255,255,.10) 1px, transparent 1px, transparent 5px),
+      repeating-linear-gradient(91deg, rgba(255,255,255,.06) 0px, transparent 2px, transparent 130px, rgba(0,0,0,.10) 132px, transparent 134px),
+      radial-gradient(ellipse 140px 90px at 22% 30%, rgba(255,255,255,.14), transparent 70%),
+      radial-gradient(ellipse 110px 70px at 78% 74%, rgba(0,0,0,.10), transparent 70%),
+      linear-gradient(100deg, #FF7FC4, #F53F9E 28%, #FF5FAE 55%, #DE2A8C 100%);
+    transition: background .25s ease;
+  }
+
+  .board-head{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+    z-index:1;
+  }
+  .panel-title{
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  }
+
+  .dish-toggle{
+    display:flex;
+    gap: 3px;
+    background: rgba(0,0,0,.32);
+    border: 1px solid rgba(0,0,0,.4);
+    padding: 3px;
+    border-radius: 999px;
+  }
+  .dish-toggle button{
+    font-family:'Mulish', sans-serif;
+    font-weight: 700;
+    font-size: 12.5px;
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .dish-toggle button.active{
+    background: var(--ink);
+    color: #241209;
+  }
+  .dish-toggle button:focus-visible{ outline: 2px solid var(--basil-ui); outline-offset: 2px; }
+
+  .pizza-svg{ width: min(340px, 80vw); height: auto; overflow: visible; z-index:1; }
+
+  @keyframes popIn{ 0%{ transform: scale(.7); opacity:0; } 65%{ transform: scale(1.08); opacity:1; } 100%{ transform: scale(1); } }
+  @media (prefers-reduced-motion: no-preference){
+    .slice{ transition: opacity .25s ease; transform-box: fill-box; transform-origin: center; animation: popIn .3s cubic-bezier(.34,1.56,.64,1); }
+  }
+
+  .readout{ text-align:center; z-index:1; }
+  .readout .big{
+    font-family:'Lilita One', sans-serif;
+    font-size: 28px;
+    color: #FFDE55;
+    text-shadow: 0 0 16px rgba(255,222,85,.55), 0 1px 3px rgba(0,0,0,.5);
+    letter-spacing: .01em;
+  }
+  .readout .small{ margin-top: 2px; font-size: 13px; color: var(--muted); }
+
+  /* ---------- controls panel ---------- */
+  .controls-panel{
+    padding: 22px 20px;
+    display:flex;
+    flex-direction:column;
+    gap: 18px;
+    background: linear-gradient(180deg, var(--board-2), var(--board-3));
+  }
+
+  .fraction-input{
+    display:flex; flex-direction:column; align-items:center;
+    margin: 4px auto 0; width: fit-content;
+  }
+  .num-field, .den-field{ position: relative; }
+  .fraction-input input{
+    width: 92px; text-align:center;
+    font-family:'Lilita One', sans-serif;
+    font-size: 34px; color: var(--ink);
+    background: var(--board);
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 26px 8px 4px;
+  }
+  .fraction-input input:focus-visible{
+    outline: none;
+    border-color: var(--basil-ui);
+    box-shadow: 0 0 0 3px rgba(111,191,115,.25);
+  }
+  /* hide native spinner — replaced by the ink-colored stepper below */
+  .fraction-input input::-webkit-outer-spin-button,
+  .fraction-input input::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
+  .fraction-input input[type=number]{ -moz-appearance: textfield; }
+
+  .stepper{
+    position:absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    display:flex; flex-direction:column; gap: 3px;
+  }
+  .step-btn{
+    background: transparent; border: none; padding: 0;
+    width: 14px; height: 12px;
+    display:flex; align-items:center; justify-content:center;
+    color: var(--ink);
+    font-size: 9px; line-height:1;
+    cursor: pointer;
+    opacity: .7;
+    transition: opacity .15s;
+  }
+  .step-btn:hover{ opacity: 1; }
+  .step-btn:focus-visible{ outline: 2px solid var(--basil-ui); outline-offset: 1px; opacity: 1; }
+  .fraction-bar{ width: 92px; height: 4px; background: #E3A64F; border-radius: 2px; margin: 10px 0; }
+  .fraction-input label{
+    font-size: 11px; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--muted-2); margin-top: 4px;
+  }
+
+  .hint{ font-size: 12.5px; color: var(--muted-2); text-align:center; line-height: 1.5; min-height: 16px; }
+  .hint.warn{ color: #E8846F; }
+
+  .presets{ display:flex; flex-wrap:wrap; gap: 8px; justify-content:center; }
+  .preset-btn{
+    font-family:'Mulish', sans-serif; font-weight: 700; font-size: 13px;
+    color: var(--ink); background: var(--board);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 13px; cursor: pointer;
+    transition: border-color .15s, background .15s, transform .16s cubic-bezier(.34,1.56,.64,1), box-shadow .15s;
+  }
+  .preset-btn:hover{ border-color: var(--basil-ui); background: var(--board-3); box-shadow: 0 0 10px rgba(76,232,99,.35); transform: translateY(-1px); }
+  .preset-btn:active{ transform: scale(.9); }
+  .preset-btn:focus-visible{ outline: 2px solid var(--basil-ui); outline-offset: 2px; }
+
+  .divider{ height:1px; background: var(--line); }
+
+  .sentence{ font-size: 14px; line-height: 1.6; color: var(--ink); }
+  .sentence b{ color: #FFD873; font-weight: 800; }
+
+  /* ---------- reference-page components (rule cards) ---------- */
+  .ref-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 16px; }
+  .rule-card{
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 18px 20px;
+    background: linear-gradient(180deg, var(--board-2), var(--board-3));
+    box-shadow: var(--shadow);
+  }
+  .rule-card.wide{ grid-column: 1 / -1; }
+  .rule-card h3{
+    font-family: 'Lilita One', sans-serif; font-weight:400;
+    font-size: 19px; color: #FFD873; margin: 0 0 10px;
+  }
+  .rule-card p{ margin: 0 0 10px; font-size: 14px; line-height: 1.6; color: var(--ink); }
+  .rule-card p:last-child{ margin-bottom: 0; }
+  .rule-card ul, .rule-card ol{ margin: 0 0 10px; padding-left: 20px; font-size: 14px; line-height: 1.65; color: var(--ink); }
+  .rule-card b{ color: #FFD873; }
+  .rule-card .muted{ color: var(--muted); }
+
+  .formula{
+    font-family: 'Lilita One', sans-serif;
+    font-size: 20px; color: var(--ink);
+    background: var(--board);
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px 16px; margin: 10px 0;
+    display: inline-flex; align-items:center; gap: 8px;
+  }
+  .frac{ display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; font-size: 16px; line-height:1.15; margin: 0 3px; }
+  .frac .fn{ padding: 0 4px; }
+  .frac .fd{ padding: 0 4px; border-top: 2px solid currentColor; }
+
+  .example-box{
+    background: rgba(0,0,0,.22);
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13.5px; color: var(--muted);
+    margin-top: 6px;
+  }
+  .example-box b{ color: var(--ink); }
+
+  .tag{
+    display:inline-block; font-size: 11px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;
+    color: #241209; background: var(--basil-ui); border-radius: 999px; padding: 3px 10px; margin-bottom: 8px;
+  }
+  .tag.warn{ background:#E8846F; }
+
+  .mistake-row{
+    display:flex; gap: 12px; align-items:flex-start;
+    border-top: 1px solid var(--line); padding: 12px 0;
+  }
+  .mistake-row:first-of-type{ border-top:none; padding-top:0; }
+  .mistake-row .no{ font-size: 13px; }
+  .mistake-row .yes{ font-size: 13px; color: #FFD873; }
+
+  .placeholder-note{
+    font-size: 12.5px; color: var(--muted-2); font-style: italic; margin-top: 4px;
+  }
+
+  /* ---------- addition/subtraction section ---------- */
+  .as-stage{ display:grid; grid-template-columns: minmax(0,1fr) minmax(260px,320px); gap: 20px; align-items:stretch; }
+  @media (max-width: 720px){ .as-stage{ grid-template-columns: 1fr; } }
+  .as-row{ display:flex; align-items:flex-end; justify-content:center; gap: 10px; flex-wrap:wrap; }
+  .as-op{
+    display:flex; gap: 3px; background: rgba(0,0,0,.32); border: 1px solid rgba(0,0,0,.4);
+    padding: 3px; border-radius: 999px; align-self:center; margin-bottom: 26px;
+  }
+  .as-op button{
+    font-family:'Lilita One', sans-serif; font-size: 16px; color: var(--muted);
+    background: transparent; border:none; border-radius:999px; width: 34px; height: 30px; cursor:pointer;
+  }
+  .as-op button.active{ background: var(--ink); color:#241209; }
+  .as-group{ text-align:center; }
+  .as-group .dish-label{ font-size: 11.5px; letter-spacing:.04em; text-transform:uppercase; color: var(--muted-2); margin-bottom:4px; }
+  .as-group.a .dish-label{ color:#FFB25E; }
+  .as-group.b .dish-label{ color:#B7D07A; }
+  .as-eq{ font-family:'Lilita One', sans-serif; font-size: 22px; color: var(--muted); align-self:center; margin-bottom: 26px; }
+  .legend{ display:flex; gap: 16px; justify-content:center; font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .swatch{ width: 11px; height: 11px; border-radius: 4px; display:inline-block; }
+
+  /* ---------- multiplication/division schematic ---------- */
+  .schema{
+    display:flex; align-items:center; justify-content:center; gap: 14px; flex-wrap:wrap;
+    background: var(--board); border:1px solid var(--line); border-radius: 14px; padding: 20px; margin: 12px 0;
+    font-family:'Lilita One', sans-serif; font-size: 24px; color: var(--ink);
+  }
+  .schema .op-sym{ color: #FFD873; font-size: 26px; }
+  .schema .arrow{ color: var(--basil-ui); font-size: 20px; }
+
+  /* ---------- task generator ---------- */
+  .task-gen{ margin-top: 4px; }
+  .task-gen h3{ display:flex; align-items:center; gap:8px; }
+  .task-q{ font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.5; }
+  .task-actions{ display:flex; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+  .task-btn{
+    font-family:'Mulish', sans-serif; font-weight: 700; font-size: 13px;
+    color: #241209; background: var(--basil-ui); border: none; border-radius: 999px;
+    padding: 9px 16px; cursor: pointer;
+    transition: filter .15s, transform .16s cubic-bezier(.34,1.56,.64,1), box-shadow .15s;
+    box-shadow: 0 0 0 rgba(76,232,99,0);
+  }
+  .task-btn.reroll{ background: var(--ink); }
+  .task-btn:hover{ filter: brightness(1.1); box-shadow: 0 0 14px rgba(76,232,99,.4); transform: translateY(-1px); }
+  .task-btn:active{ transform: scale(.92) rotate(-2deg); }
+  .task-btn:focus-visible{ outline: 2px solid #FFD873; outline-offset: 2px; }
+  .task-a{
+    font-size: 14px; color: var(--muted); line-height: 1.55;
+    background: rgba(0,0,0,.22); border: 1px dashed var(--line); border-radius: 10px;
+    padding: 10px 14px; margin: 0;
+  }
+
+  .footer-credit{
+    text-align: center; font-size: 12px; color: var(--muted-2);
+    opacity: .55; margin-top: 4px;
+  }
+  .footer-credit a{ color: inherit; text-decoration: underline; }
+  .footer-credit a:hover{ opacity: .85; }
+</style>
+
+<div class="wrap">
+
+  <header class="topbar">
+    <h1>Обыкновенные дроби</h1>
+    <p>Всё про ДРОБИ в одном месте: от определения и алгоритмов действий до генератора заданий.</p>
+  </header>
+
+  <div class="layout">
+    <div class="menu-wrap">
+      <button type="button" class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="sideNav">
+        <span class="burger-ico">☰</span> Разделы
+      </button>
+      <nav class="sidebar" id="sideNav" hidden>
+        <button type="button" class="nav-btn active" data-page="basics"><span class="nav-ico">🍕</span>Что такое дробь</button>
+        <button type="button" class="nav-btn" data-page="types"><span class="nav-ico">🔢</span>Виды дробей</button>
+        <button type="button" class="nav-btn" data-page="property"><span class="nav-ico">✂️</span>Основное свойство</button>
+        <button type="button" class="nav-btn" data-page="common"><span class="nav-ico">⚖️</span>Общий знаменатель</button>
+        <button type="button" class="nav-btn" data-page="addsub"><span class="nav-ico nav-ico-badge">➕</span>Сложение и вычитание</button>
+        <button type="button" class="nav-btn" data-page="muldiv"><span class="nav-ico nav-ico-badge">✖️</span>Умножение и деление</button>
+        <button type="button" class="nav-btn" data-page="applied"><span class="nav-ico">🎯</span>Дробь и число</button>
+        <button type="button" class="nav-btn" data-page="mistakes"><span class="nav-ico">⚠️</span>Частые ошибки</button>
+      </nav>
+    </div>
+
+    <main class="content">
+
+    <section class="page" data-page="basics">
+
+    <div class="head">
+      <span class="eyebrow">Наглядно</span>
+      <h1>Дроби на тарелке</h1>
+      <p>Введи числитель и знаменатель — блюдо разрежется на нужное число частей, и на столе появится ровно эта дробь, кусочек за кусочком. Переключай пиццу и тортик в уголке стола.</p>
+    </div>
+
+    <div class="stage">
+
+    <section class="panel board-panel">
+      <div class="board-head">
+        <span class="panel-title">Стол сборки</span>
+        <div class="dish-toggle" id="dishToggle">
+          <button type="button" data-dish="pizza" class="active" aria-pressed="true">🍕 Пицца</button>
+          <button type="button" data-dish="cake" aria-pressed="false">🍰 Тортик</button>
+        </div>
+      </div>
+      <svg class="pizza-svg" id="pizzaSvg" viewBox="0 0 320 320" role="img" aria-label="Блюдо, разделённое на кусочки"></svg>
+      <div class="readout">
+        <div class="big" id="readoutBig">3/10</div>
+        <div class="small" id="readoutSmall">выложено 3 кусочка из 10</div>
+      </div>
+    </section>
+
+    <section class="panel controls-panel">
+      <span class="panel-title">Выложено кусочков</span>
+
+      <div class="fraction-input">
+        <div class="num-field">
+          <input type="number" id="numInput" inputmode="numeric" min="0" step="1" value="3" aria-label="Числитель — сколько кусочков выложить">
+          <span class="stepper">
+            <button type="button" class="step-btn" data-target="numInput" data-dir="1" aria-label="Увеличить числитель">▲</button>
+            <button type="button" class="step-btn" data-target="numInput" data-dir="-1" aria-label="Уменьшить числитель">▼</button>
+          </span>
+        </div>
+        <div class="fraction-bar"></div>
+        <div class="den-field">
+          <input type="number" id="denInput" inputmode="numeric" min="1" step="1" value="10" aria-label="Знаменатель — на сколько кусочков разрезать">
+          <span class="stepper">
+            <button type="button" class="step-btn" data-target="denInput" data-dir="1" aria-label="Увеличить знаменатель">▲</button>
+            <button type="button" class="step-btn" data-target="denInput" data-dir="-1" aria-label="Уменьшить знаменатель">▼</button>
+          </span>
+        </div>
+        <label>всего кусочков</label>
+      </div>
+
+      <div class="hint" id="hint"></div>
+
+      <div class="presets">
+        <button class="preset-btn" type="button" data-n="1" data-d="2">1/2</button>
+        <button class="preset-btn" type="button" data-n="1" data-d="4">1/4</button>
+        <button class="preset-btn" type="button" data-n="3" data-d="4">3/4</button>
+        <button class="preset-btn" type="button" data-n="2" data-d="3">2/3</button>
+        <button class="preset-btn" type="button" data-n="3" data-d="10">3/10</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="sentence" id="sentence"></p>
+    </section>
+
+    </div>
+
+    <div class="rule-card wide task-gen" data-topic="basics">
+      <h3>🎲 Генератор заданий</h3>
+      <p class="task-q"></p>
+      <div class="task-actions">
+        <button type="button" class="task-btn show-answer">Показать ответ</button>
+        <button type="button" class="task-btn reroll">🎲 Другое задание</button>
+      </div>
+      <p class="task-a" hidden></p>
+    </div>
+
+    </section>
+
+    <section class="page" data-page="types" hidden>
+      <div class="head">
+        <span class="eyebrow">Виды дробей</span>
+        <h1>Правильные, неправильные, смешанные</h1>
+        <p>Как отличить дроби друг от друга и переводить одну форму в другую.</p>
+      </div>
+      <div class="ref-grid">
+        <div class="rule-card">
+          <span class="tag">Правильная</span>
+          <h3>Числитель меньше знаменателя</h3>
+          <p>Например, <b>3/5</b> — это меньше одной целой пиццы: часть меньше целого.</p>
+          <div class="example-box">3/5, 1/2, 7/10 — все правильные</div>
+        </div>
+        <div class="rule-card">
+          <span class="tag warn">Неправильная</span>
+          <h3>Числитель ≥ знаменателя</h3>
+          <p>Например, <b>7/5</b> — это целая пицца и ещё кусочек сверху: значение не меньше единицы.</p>
+          <div class="example-box">7/5, 9/9, 11/4 — все неправильные</div>
+        </div>
+        <div class="rule-card wide">
+          <h3>Смешанное число</h3>
+          <p>Неправильную дробь удобно записывать как целую часть + правильную дробь.</p>
+          <div class="formula">7/5 = 1 <span class="frac"><span class="fn">2</span><span class="fd">5</span></span></div>
+        </div>
+        <div class="rule-card">
+          <h3>Неправильная → смешанное</h3>
+          <ol>
+            <li>Делим числитель на знаменатель с остатком.</li>
+            <li>Частное — целая часть.</li>
+            <li>Остаток — числитель дробной части, знаменатель тот же.</li>
+          </ol>
+          <div class="example-box"><b>17/5</b>: 17 ÷ 5 = 3 (ост. 2) → <b>3 целых 2/5</b></div>
+        </div>
+        <div class="rule-card">
+          <h3>Смешанное → неправильная</h3>
+          <ol>
+            <li>Целую часть умножаем на знаменатель.</li>
+            <li>Прибавляем числитель.</li>
+            <li>Знаменатель не меняется.</li>
+          </ol>
+          <div class="example-box"><b>2 целых 1/3</b>: 2×3+1 = 7 → <b>7/3</b></div>
+        </div>
+      </div>
+
+      <div class="rule-card wide task-gen" data-topic="types">
+        <h3>🎲 Генератор заданий</h3>
+        <p class="task-q"></p>
+        <div class="task-actions">
+          <button type="button" class="task-btn show-answer">Показать ответ</button>
+          <button type="button" class="task-btn reroll">🎲 Другое задание</button>
+        </div>
+        <p class="task-a" hidden></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="property" hidden>
+      <div class="head">
+        <span class="eyebrow">Основное свойство</span>
+        <h1>Основное свойство дроби и сокращение</h1>
+        <p>Как менять запись дроби, не меняя её значение.</p>
+      </div>
+      <div class="ref-grid">
+        <div class="rule-card wide">
+          <h3>Основное свойство дроби</h3>
+          <p>Если числитель и знаменатель умножить или разделить на одно и то же натуральное число (не на 0), значение дроби не изменится.</p>
+          <div class="formula"><span class="frac"><span class="fn">a</span><span class="fd">b</span></span> = <span class="frac"><span class="fn">a·k</span><span class="fd">b·k</span></span></div>
+        </div>
+        <div class="rule-card">
+          <span class="tag">Расширение</span>
+          <h3>Умножаем числитель и знаменатель</h3>
+          <p>Нужно, чтобы привести дробь к нужному (например, общему) знаменателю.</p>
+          <div class="example-box"><b>2/3</b> · (4/4) = <b>8/12</b></div>
+        </div>
+        <div class="rule-card">
+          <span class="tag">Сокращение</span>
+          <h3>Делим числитель и знаменатель</h3>
+          <p>Нужно, чтобы упростить дробь — записать её меньшими числами.</p>
+          <div class="example-box"><b>8/12</b> ÷ (4/4) = <b>2/3</b></div>
+        </div>
+        <div class="rule-card wide">
+          <h3>Как сократить дробь до конца</h3>
+          <ol>
+            <li>Находим НОД (наибольший общий делитель) числителя и знаменателя.</li>
+            <li>Делим числитель и знаменатель на НОД.</li>
+            <li>Если НОД = 1 — дробь уже несократима.</li>
+          </ol>
+          <div class="example-box">НОД(18, 24) = 6 → <b>18/24 = 3/4</b></div>
+        </div>
+      </div>
+
+      <div class="rule-card wide task-gen" data-topic="property">
+        <h3>🎲 Генератор заданий</h3>
+        <p class="task-q"></p>
+        <div class="task-actions">
+          <button type="button" class="task-btn show-answer">Показать ответ</button>
+          <button type="button" class="task-btn reroll">🎲 Другое задание</button>
+        </div>
+        <p class="task-a" hidden></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="common" hidden>
+      <div class="head">
+        <span class="eyebrow">Общий знаменатель</span>
+        <h1>Приведение к общему знаменателю и сравнение</h1>
+        <p>Чтобы сравнить или сложить дроби с разными знаменателями, их сначала нужно «нарезать одинаково».</p>
+      </div>
+      <div class="ref-grid">
+        <div class="rule-card wide">
+          <h3>Зачем нужен общий знаменатель</h3>
+          <p>Дроби 1/3 и 1/4 нарезаны по-разному — кусочки разного размера, их нельзя сравнивать «в лоб». Нужно привести обе дроби к одинаковому знаменателю — тогда кусочки станут одного размера, и сравнивать или складывать легко.</p>
+        </div>
+        <div class="rule-card">
+          <h3>НОК знаменателей</h3>
+          <p>Наименьший общий знаменатель — это НОК (наименьшее общее кратное) двух знаменателей.</p>
+          <div class="example-box">НОК(4, 6) = 12</div>
+        </div>
+        <div class="rule-card">
+          <h3>Алгоритм приведения</h3>
+          <ol>
+            <li>Находим НОК знаменателей — это новый знаменатель.</li>
+            <li>Для каждой дроби: НОК ÷ старый знаменатель = доп. множитель.</li>
+            <li>Числитель умножаем на этот множитель.</li>
+          </ol>
+          <div class="example-box">1/4 → ×3 → 3/12; 1/6 → ×2 → 2/12</div>
+        </div>
+        <div class="rule-card wide">
+          <h3>Второй способ: через разложение на простые множители</h3>
+          <p>Если знаменатели «неудобные» и НОК не видно сразу — раскладываем каждый на простые множители и смотрим, какие из них повторяются в обоих числах, а какие — лишние.</p>
+          <ol>
+            <li>Раскладываем каждый знаменатель на простые множители.</li>
+            <li>Множитель, который есть в обоих разложениях, берём один раз — не дублируем.</li>
+            <li>Всё, что осталось «лишним» — повторы множителя у одного числа или множители, которых нет у другого, — просто дописываем.</li>
+            <li>Перемножаем всё, что выписали, — это и есть НОК (общий знаменатель).</li>
+          </ol>
+          <div class="example-box">НОК(12, 18): 12 = 2×2×3, 18 = 2×3×3 → 2 и 3 общие, берём по одному разу; плюс лишняя 2 из разложения 12 и лишняя 3 из разложения 18 → 2×2×3×3 = <b>36</b></div>
+        </div>
+        <div class="rule-card wide">
+          <h3>Как сравнивать дроби</h3>
+          <ul>
+            <li><b>Одинаковые знаменатели</b> — больше та дробь, где числитель больше.</li>
+            <li><b>Одинаковые числители</b> — больше та дробь, где знаменатель меньше (кусок от пиццы, разрезанной на меньше частей, крупнее).</li>
+            <li><b>Всё разное</b> — приводим к общему знаменателю и сравниваем числители.</li>
+          </ul>
+          <div class="example-box">3/4 и 5/6 → общий знаменатель 12 → 9/12 и 10/12 → 5/6 больше</div>
+        </div>
+      </div>
+
+      <div class="rule-card wide task-gen" data-topic="common">
+        <h3>🎲 Генератор заданий</h3>
+        <p class="task-q"></p>
+        <div class="task-actions">
+          <button type="button" class="task-btn show-answer">Показать ответ</button>
+          <button type="button" class="task-btn reroll">🎲 Другое задание</button>
+        </div>
+        <p class="task-a" hidden></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="addsub" hidden>
+      <div class="head">
+        <span class="eyebrow">Действия с дробями</span>
+        <h1>Сложение и вычитание</h1>
+        <p>Две разные пиццы на одной тарелке — сложи или вычти дроби и посмотри на результат.</p>
+      </div>
+
+      <div class="as-stage">
+        <section class="panel board-panel">
+          <div class="board-head">
+            <span class="panel-title">Стол сборки</span>
+          </div>
+          <svg class="pizza-svg" id="asSvg" viewBox="0 0 320 320" role="img" aria-label="Тарелка с двумя дробями"></svg>
+          <div class="readout">
+            <div class="big" id="asReadoutBig"></div>
+            <div class="small" id="asReadoutSmall"></div>
+          </div>
+          <div class="legend">
+            <span><i class="swatch" style="background:#FFB25E"></i>Пицца А (пепперони)</span>
+            <span><i class="swatch" style="background:#B7D07A"></i>Пицца Б (грибная)</span>
+          </div>
+        </section>
+
+        <section class="panel controls-panel">
+          <span class="panel-title">Дроби</span>
+          <div class="as-row">
+            <div class="as-group a">
+              <div class="dish-label">Пицца А</div>
+              <div class="fraction-input">
+                <div class="num-field"><input type="number" id="asNumA" min="0" step="1" value="2"></div>
+                <div class="fraction-bar"></div>
+                <div class="den-field"><input type="number" id="asDenA" min="1" step="1" value="3"></div>
+              </div>
+            </div>
+            <div class="as-op" id="asOp">
+              <button type="button" data-op="add" class="active">+</button>
+              <button type="button" data-op="sub">−</button>
+            </div>
+            <div class="as-group b">
+              <div class="dish-label">Пицца Б</div>
+              <div class="fraction-input">
+                <div class="num-field"><input type="number" id="asNumB" min="0" step="1" value="1"></div>
+                <div class="fraction-bar"></div>
+                <div class="den-field"><input type="number" id="asDenB" min="1" step="1" value="6"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hint" id="asHint"></div>
+          <div class="divider"></div>
+          <p class="sentence" id="asSentence"></p>
+        </section>
+      </div>
+
+      <div class="rule-card wide task-gen" data-topic="addsub">
+        <h3>🎲 Генератор заданий</h3>
+        <p class="task-q"></p>
+        <div class="task-actions">
+          <button type="button" class="task-btn show-answer">Показать ответ</button>
+          <button type="button" class="task-btn reroll">🎲 Другое задание</button>
+        </div>
+        <p class="task-a" hidden></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="muldiv" hidden>
+      <div class="head">
+        <span class="eyebrow">Действия с дробями</span>
+        <h1>Умножение и деление</h1>
+        <p>Тут уже не нарисуешь на пицце — зато правило совсем короткое.</p>
+      </div>
+      <div class="ref-grid">
+        <div class="rule-card wide">
+          <h3>Умножение дробей</h3>
+          <p>Числитель на числитель, знаменатель на знаменатель.</p>
+          <div class="schema">
+            <span class="frac"><span class="fn">a</span><span class="fd">b</span></span>
+            <span class="op-sym">×</span>
+            <span class="frac"><span class="fn">c</span><span class="fd">d</span></span>
+            <span class="arrow">=</span>
+            <span class="frac"><span class="fn">a·c</span><span class="fd">b·d</span></span>
+          </div>
+          <div class="example-box"><b>2/3 × 4/5</b> = (2×4)/(3×5) = 8/15</div>
+        </div>
+        <div class="rule-card wide">
+          <h3>Деление дробей</h3>
+          <p>Делить на дробь — то же самое, что умножить на перевёрнутую («обратную») дробь.</p>
+          <div class="schema">
+            <span class="frac"><span class="fn">a</span><span class="fd">b</span></span>
+            <span class="op-sym">÷</span>
+            <span class="frac"><span class="fn">c</span><span class="fd">d</span></span>
+            <span class="arrow">=</span>
+            <span class="frac"><span class="fn">a</span><span class="fd">b</span></span>
+            <span class="op-sym">×</span>
+            <span class="frac"><span class="fn">d</span><span class="fd">c</span></span>
+          </div>
+          <div class="example-box"><b>2/3 ÷ 4/5</b> = 2/3 × 5/4 = 10/12 = 5/6</div>
+        </div>
+        <div class="rule-card">
+          <h3>Умножение на целое число</h3>
+          <p>Целое число можно представить как дробь со знаменателем 1.</p>
+          <div class="example-box"><b>2/3 × 4</b> = 2/3 × 4/1 = 8/3 = 2 целых 2/3</div>
+        </div>
+        <div class="rule-card">
+          <h3>После умножения и деления</h3>
+          <p>Результат обязательно сокращаем и, если нужно, переводим в смешанное число.</p>
+          <div class="example-box">8/12 → сократить → 2/3</div>
+        </div>
+      </div>
+
+      <div class="rule-card wide task-gen" data-topic="muldiv">
+        <h3>🎲 Генератор заданий</h3>
+        <p class="task-q"></p>
+        <div class="task-actions">
+          <button type="button" class="task-btn show-answer">Показать ответ</button>
+          <button type="button" class="task-btn reroll">🎲 Другое задание</button>
+        </div>
+        <p class="task-a" hidden></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="applied" hidden>
+      <div class="head">
+        <span class="eyebrow">Применение</span>
+        <h1>Дробь от числа и число по дроби</h1>
+        <p>Прикладные задачи: находим часть числа или восстанавливаем целое по известной части.</p>
+      </div>
+      <div class="ref-grid">
+        <div class="rule-card wide">
+          <span class="tag">Прямая задача</span>
+          <h3>Найти дробь от числа</h3>
+          <p>Чтобы найти <b>m/n</b> от числа, число делим на <b>n</b> и умножаем на <b>m</b>.</p>
+          <div class="example-box">Найти 3/4 от 20: 20 ÷ 4 = 5; 5 × 3 = <b>15</b></div>
+        </div>
+        <div class="rule-card wide">
+          <span class="tag warn">Обратная задача</span>
+          <h3>Найти число по его дроби</h3>
+          <p>Известно, что <b>m/n</b> числа равны какому-то значению. Чтобы найти всё число — делим это значение на <b>m</b> и умножаем на <b>n</b>.</p>
+          <div class="example-box">3/4 числа равны 15: 15 ÷ 3 = 5; 5 × 4 = <b>20</b></div>
+        </div>
+        <div class="rule-card wide">
+          <h3>Как отличить, какая это задача</h3>
+          <p>Известно <b>целое</b> число, нужно найти его часть — прямая задача (дробь от числа). Известна <b>часть</b>, нужно найти целое — обратная задача (число по дроби).</p>
+        </div>
+      </div>
+
+      <div class="rule-card wide task-gen" data-topic="applied">
+        <h3>🎲 Генератор заданий</h3>
+        <p class="task-q"></p>
+        <div class="task-actions">
+          <button type="button" class="task-btn show-answer">Показать ответ</button>
+          <button type="button" class="task-btn reroll">🎲 Другое задание</button>
+        </div>
+        <p class="task-a" hidden></p>
+      </div>
+    </section>
+
+    <section class="page" data-page="mistakes" hidden>
+      <div class="head">
+        <span class="eyebrow">Шпаргалка</span>
+        <h1>Частые ошибки</h1>
+        <p>То, что чаще всего путают ученики — держи под рукой на уроке.</p>
+      </div>
+      <div class="rule-card wide">
+        <div class="mistake-row">
+          <div style="flex:1"><span class="no">✕ Неверно</span><br>1/2 + 1/3 = 2/5 — сложили числители и знаменатели отдельно</div>
+          <div style="flex:1"><span class="yes">✓ Верно</span><br>Сначала общий знаменатель: 3/6 + 2/6 = 5/6</div>
+        </div>
+        <div class="mistake-row">
+          <div style="flex:1"><span class="no">✕ Неверно</span><br>При сложении смешанных чисел дробная часть суммы получилась неправильной, но единицу в целую часть не перенесли</div>
+          <div style="flex:1"><span class="yes">✓ Верно</span><br>Если дробная часть суммы неправильная — переносим единицу в целую часть</div>
+        </div>
+        <div class="mistake-row">
+          <div style="flex:1"><span class="no">✕ Неверно</span><br>При делении дробей забыли перевернуть вторую дробь</div>
+          <div style="flex:1"><span class="yes">✓ Верно</span><br>Деление — это умножение на обратную дробь</div>
+        </div>
+        <div class="mistake-row">
+          <div style="flex:1"><span class="no">✕ Неверно</span><br>Ответ оставили несокращённым</div>
+          <div style="flex:1"><span class="yes">✓ Верно</span><br>Всегда проверяем: делится ли числитель и знаменатель на одно и то же число</div>
+        </div>
+        <div class="mistake-row">
+          <div style="flex:1"><span class="no">✕ Неверно</span><br>Сравнили дроби по числителю, не приведя к общему знаменателю</div>
+          <div style="flex:1"><span class="yes">✓ Верно</span><br>Сравнивать по числителю можно только при одинаковых знаменателях</div>
+        </div>
+      </div>
+      <p class="placeholder-note">Черновик — дополню конкретными ошибками учеников по мере накопления отчётов.</p>
+
+      <div class="rule-card wide task-gen" data-topic="mistakes">
+        <h3>🎲 Генератор заданий</h3>
+        <p class="task-q"></p>
+        <div class="task-actions">
+          <button type="button" class="task-btn show-answer">Показать ответ</button>
+          <button type="button" class="task-btn reroll">🎲 Другое задание</button>
+        </div>
+        <p class="task-a" hidden></p>
+      </div>
+    </section>
+
+    </main>
+  </div>
+
+  <footer class="footer-credit">Авторская методика · Создано <a href="https://t.me/i_milenaaa" target="_blank" rel="noopener">@i_milenaaa</a> · <a href="mailto:vsyakaya.vsyachina13@gmail.com">vsyakaya.vsyachina13@gmail.com</a></footer>
+
+</div>
+
+<script>
+(function(){
+  var MAX_DEN = 24;
+
+  var DISHES = {
+    pizza: {
+      key: 'pizza', nomEn: 'пицца', gen: 'пиццы', wordEnding: 'а',
+      outline: '#4A2417',
+      plateEmpty: '#3A2416', plateLine: '#1E0F07',
+      crust: '#E8A94E', crustLight: '#F6CE86',
+      base: '#C1432B',
+      filling: '#FFC24A', fillingLight: '#FFE29A',
+      toppings: ['mushroom', 'pepperoni', 'basil']
+    },
+    cake: {
+      key: 'cake', nomEn: 'тортик', gen: 'тортика', wordEnding: '',
+      outline: '#3A2A1D',
+      plateEmpty: '#81D8D0', plateLine: '#3FA79B',
+      crust: '#A9703C', crustLight: '#C99A63',
+      base: '#D9A45E',
+      filling: '#FFE9B8', fillingLight: '#FFF6E0',
+      toppings: ['strawberry', 'blueberry', 'mint']
+    }
+  };
+
+  var numInput = document.getElementById('numInput');
+  var denInput = document.getElementById('denInput');
+  var svg = document.getElementById('pizzaSvg');
+  var hint = document.getElementById('hint');
+  var readoutBig = document.getElementById('readoutBig');
+  var readoutSmall = document.getElementById('readoutSmall');
+  var sentence = document.getElementById('sentence');
+  var presets = document.querySelectorAll('.preset-btn');
+  var dishToggleBtns = document.querySelectorAll('.dish-toggle button');
+  var boardPanel = document.querySelector('.board-panel');
+
+  var currentDish = 'pizza';
+
+  function gcd(a, b){ return b === 0 ? a : gcd(b, a % b); }
+
+  function polar(cx, cy, r, angleDeg){
+    var rad = (angleDeg - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+
+  function sectorPath(cx, cy, r, startAngle, endAngle){
+    var start = polar(cx, cy, r, endAngle);
+    var end = polar(cx, cy, r, startAngle);
+    var largeArc = (endAngle - startAngle) <= 180 ? 0 : 1;
+    return 'M ' + cx + ' ' + cy +
+      ' L ' + start.x.toFixed(2) + ' ' + start.y.toFixed(2) +
+      ' A ' + r + ' ' + r + ' 0 ' + largeArc + ' 0 ' + end.x.toFixed(2) + ' ' + end.y.toFixed(2) +
+      ' Z';
+  }
+
+  function svgEl(tag, attrs){
+    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs){ el.setAttribute(k, attrs[k]); }
+    return el;
+  }
+
+  function seeded(i, salt){
+    var x = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function addDefs(dish){
+    var defs = svgEl('defs', {});
+    var fillingGrad = svgEl('radialGradient', { id: 'fillingGrad', cx: '35%', cy: '28%', r: '80%' });
+    fillingGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': dish.fillingLight }));
+    fillingGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': dish.filling }));
+    defs.appendChild(fillingGrad);
+
+    var crustGrad = svgEl('radialGradient', { id: 'crustGrad', cx: '32%', cy: '25%', r: '85%' });
+    crustGrad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': dish.crustLight }));
+    crustGrad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': dish.crust }));
+    defs.appendChild(crustGrad);
+
+    svg.appendChild(defs);
+  }
+
+  /* ---------- topping shapes (short paths / primitives only) ---------- */
+
+  function addMushroom(parent, x, y, size, rot, dish){
+    var g = svgEl('g', { transform: 'translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ') rotate(' + rot.toFixed(0) + ')' });
+    g.appendChild(svgEl('rect', { x: -size * 0.16, y: -size * 0.05, width: size * 0.32, height: size * 0.6, rx: size * 0.1, fill: '#F0E6D2', stroke: dish.outline, 'stroke-width': 1.4 }));
+    g.appendChild(svgEl('path', { d: 'M ' + (-size) + ',0 A ' + size + ' ' + (size * 0.72) + ' 0 0 1 ' + size + ',0 Z', fill: '#E4D3B8', stroke: dish.outline, 'stroke-width': 1.6 }));
+    g.appendChild(svgEl('path', { d: 'M ' + (-size * 0.65) + ',' + (-size * 0.02) + ' A ' + (size * 0.7) + ' ' + (size * 0.45) + ' 0 0 0 ' + (size * 0.65) + ',' + (-size * 0.02), fill: 'none', stroke: '#C9B48F', 'stroke-width': 1 }));
+    parent.appendChild(g);
+  }
+
+  function addPepperoni(parent, x, y, size, dish){
+    parent.appendChild(svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: size, fill: '#B23A2C', stroke: dish.outline, 'stroke-width': 1.6 }));
+    parent.appendChild(svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: size * 0.55, fill: '#D0574A' }));
+    for (var k = 0; k < 3; k++){
+      var a = k * 120 + 25, rr = size * 0.42;
+      var fx = x + rr * Math.cos(a * Math.PI / 180), fy = y + rr * Math.sin(a * Math.PI / 180);
+      parent.appendChild(svgEl('circle', { cx: fx.toFixed(1), cy: fy.toFixed(1), r: size * 0.13, fill: '#EFC0B0' }));
+    }
+  }
+
+  function addLeaf(parent, x, y, size, rot, color, dish){
+    var g = svgEl('g', { transform: 'translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ') rotate(' + rot.toFixed(0) + ')' });
+    g.appendChild(svgEl('path', {
+      d: 'M 0,' + (-size) + ' C ' + (size * 0.8) + ',' + (-size * 0.4) + ' ' + (size * 0.8) + ',' + (size * 0.4) + ' 0,' + size +
+         ' C ' + (-size * 0.8) + ',' + (size * 0.4) + ' ' + (-size * 0.8) + ',' + (-size * 0.4) + ' 0,' + (-size) + ' Z',
+      fill: color, stroke: dish.outline, 'stroke-width': 1.4
+    }));
+    g.appendChild(svgEl('line', { x1: 0, y1: -size * 0.75, x2: 0, y2: size * 0.75, stroke: dish.outline, 'stroke-width': 1, opacity: .45 }));
+    parent.appendChild(g);
+  }
+
+  function addStrawberry(parent, x, y, size, rot, dish){
+    var g = svgEl('g', { transform: 'translate(' + x.toFixed(1) + ',' + y.toFixed(1) + ') rotate(' + rot.toFixed(0) + ')' });
+    g.appendChild(svgEl('path', {
+      d: 'M 0,' + (-size * 0.8) + ' C ' + size + ',' + (-size * 0.7) + ' ' + (size * 0.9) + ',' + (size * 0.55) + ' 0,' + (size * 1.05) +
+         ' C ' + (-size * 0.9) + ',' + (size * 0.55) + ' ' + (-size) + ',' + (-size * 0.7) + ' 0,' + (-size * 0.8) + ' Z',
+      fill: '#E8455A', stroke: dish.outline, 'stroke-width': 1.5
+    }));
+    g.appendChild(svgEl('path', {
+      d: 'M ' + (-size * 0.45) + ',' + (-size * 0.78) + ' L 0,' + (-size * 1.1) + ' L ' + (size * 0.45) + ',' + (-size * 0.78) + ' Z',
+      fill: '#6FBF73', stroke: dish.outline, 'stroke-width': 1.1
+    }));
+    for (var k = 0; k < 4; k++){
+      var sx = (seeded(k, x) - 0.5) * size * 0.9;
+      var sy = seeded(k, y) * size * 0.8 - size * 0.05;
+      g.appendChild(svgEl('circle', { cx: sx.toFixed(1), cy: sy.toFixed(1), r: size * 0.09, fill: '#FFE7A8' }));
+    }
+    parent.appendChild(g);
+  }
+
+  function addBlueberry(parent, x, y, size, dish){
+    parent.appendChild(svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: size, fill: '#4A5C9C', stroke: dish.outline, 'stroke-width': 1.5 }));
+    parent.appendChild(svgEl('circle', { cx: (x - size * 0.3).toFixed(1), cy: (y - size * 0.3).toFixed(1), r: size * 0.28, fill: '#93A3D6', opacity: .85 }));
+  }
+
+  function addTopping(parent, type, x, y, size, rot, dish){
+    switch (type){
+      case 'mushroom': addMushroom(parent, x, y, size, rot, dish); break;
+      case 'pepperoni': addPepperoni(parent, x, y, size, dish); break;
+      case 'basil': addLeaf(parent, x, y, size, rot, '#6FBF73', dish); break;
+      case 'strawberry': addStrawberry(parent, x, y, size, rot, dish); break;
+      case 'blueberry': addBlueberry(parent, x, y, size, dish); break;
+      case 'mint': addLeaf(parent, x, y, size, rot, '#7FBF8A', dish); break;
+    }
+  }
+
+  function addCharSpot(parent, x, y, size){
+    parent.appendChild(svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: size, fill: '#5C3018', opacity: .35 }));
+  }
+
+  function addCreamDollop(parent, x, y, size, dish){
+    var g = svgEl('g', {});
+    g.appendChild(svgEl('circle', { cx: (x - size * 0.5).toFixed(1), cy: y.toFixed(1), r: size * 0.55, fill: '#FFFBF2', stroke: dish.outline, 'stroke-width': 1 }));
+    g.appendChild(svgEl('circle', { cx: x.toFixed(1), cy: (y - size * 0.25).toFixed(1), r: size * 0.62, fill: '#FFFBF2', stroke: dish.outline, 'stroke-width': 1 }));
+    g.appendChild(svgEl('circle', { cx: (x + size * 0.5).toFixed(1), cy: y.toFixed(1), r: size * 0.5, fill: '#FFFBF2', stroke: dish.outline, 'stroke-width': 1 }));
+    parent.appendChild(g);
+  }
+
+  /* ---------- main render ---------- */
+
+  function drawPlate(dish, cx, cy, r){
+    svg.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r + 10, fill: dish.plateLine }));
+    svg.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r + 6, fill: dish.plateEmpty }));
+  }
+
+  function drawSlice(dish, cx, cy, r, start, end, sliceIndex){
+    var g = svgEl('g', { class: 'slice' });
+    var width = end - start;
+    g.appendChild(svgEl('path', { d: sectorPath(cx, cy, r + 3, start, end), fill: 'url(#crustGrad)', stroke: dish.outline, 'stroke-width': 3 }));
+    g.appendChild(svgEl('path', { d: sectorPath(cx, cy, r - 6, start, end), fill: dish.base, stroke: dish.outline, 'stroke-width': 1.4 }));
+    g.appendChild(svgEl('path', { d: sectorPath(cx, cy, r - 14, start, end), fill: 'url(#fillingGrad)' }));
+
+    var mid = (start + end) / 2;
+
+    // char / crumb spots along the crust edge, for texture
+    var charCount = width > 40 ? 3 : width > 18 ? 2 : 1;
+    for (var s = 0; s < charCount; s++){
+      var cAng = start + (s + 0.5) * (width / charCount) + (seeded(sliceIndex, s + 40) - 0.5) * (width / charCount) * 0.6;
+      var cp = polar(cx, cy, r - 1, cAng);
+      addCharSpot(g, cp.x, cp.y, dish.key === 'pizza' ? 2.6 : 2);
+    }
+
+    // several toppings scattered across the filling, denser on wider slices
+    var toppingCount = width > 55 ? 4 : width > 30 ? 3 : width > 14 ? 2 : 1;
+    var toppingSize = width > 30 ? 12 : width > 14 ? 9 : 7;
+    for (var t = 0; t < toppingCount; t++){
+      var rr = (r - 14) * (0.28 + seeded(sliceIndex, t * 5 + 1) * 0.55);
+      var ang = start + (t + 0.5) * (width / toppingCount) + (seeded(sliceIndex, t * 5 + 3) - 0.5) * (width / toppingCount) * 0.7;
+      var p = polar(cx, cy, rr, ang);
+      var type = dish.toppings[(sliceIndex + t) % dish.toppings.length];
+      addTopping(g, type, p.x, p.y, toppingSize, ang, dish);
+    }
+
+    if (dish.key === 'cake' && width > 20){
+      var dp = polar(cx, cy, (r - 14) * 0.32, mid);
+      addCreamDollop(g, dp.x, dp.y, 9, dish);
+    }
+
+    var sheenP = polar(cx, cy, (r - 14) * 0.75, mid + width * 0.2);
+    g.appendChild(svgEl('ellipse', {
+      cx: sheenP.x.toFixed(1), cy: sheenP.y.toFixed(1), rx: 11, ry: 5, fill: '#FFFFFF', opacity: .22,
+      transform: 'rotate(' + mid.toFixed(0) + ' ' + sheenP.x.toFixed(1) + ' ' + sheenP.y.toFixed(1) + ')'
+    }));
+    return g;
+  }
+
+  function drawWholeDish(dish, show){
+    var cx = 160, cy = 160, r = 132;
+    addDefs(dish);
+    drawPlate(dish, cx, cy, r);
+    if (!show) return;
+    var g = svgEl('g', {});
+    g.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r + 3, fill: 'url(#crustGrad)', stroke: dish.outline, 'stroke-width': 3 }));
+    g.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r - 7, fill: dish.base, stroke: dish.outline, 'stroke-width': 1.4 }));
+    g.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r - 15, fill: 'url(#fillingGrad)' }));
+    for (var i = 0; i < 10; i++){
+      var ang = i * 36 + 12;
+      var rr = (r - 15) * (0.3 + seeded(i, 2) * 0.55);
+      var rp = polar(cx, cy, rr, ang);
+      addTopping(g, dish.toppings[i % dish.toppings.length], rp.x, rp.y, 11, ang, dish);
+    }
+    for (var s = 0; s < 8; s++){
+      var cAng = s * 45 + 6;
+      var cp = polar(cx, cy, r - 1, cAng);
+      addCharSpot(g, cp.x, cp.y, dish.key === 'pizza' ? 2.6 : 2);
+    }
+    if (dish.key === 'cake'){
+      addCreamDollop(g, cx, cy, 11, dish);
+    }
+    svg.appendChild(g);
+  }
+
+  function render(dishKey, numerator, denominator){
+    var dish = DISHES[dishKey];
+    svg.innerHTML = '';
+    var cx = 160, cy = 160, r = 132;
+
+    if (denominator === 1){
+      drawWholeDish(dish, numerator >= 1);
+      return;
+    }
+
+    addDefs(dish);
+    drawPlate(dish, cx, cy, r);
+
+    var step = 360 / denominator;
+
+    for (var i = 0; i < denominator; i++){
+      var start = i * step;
+      var end = start + step;
+      var isFilled = i < numerator;
+
+      if (isFilled){
+        svg.appendChild(drawSlice(dish, cx, cy, r, start, end, i));
+      } else {
+        var g = svgEl('g', { class: 'slice' });
+        var mid2 = (start + end) / 2;
+        for (var c = 0; c < 2; c++){
+          var rr2 = r * (0.3 + seeded(i, c + 20) * 0.5);
+          var ang2 = mid2 + (seeded(i, c + 30) - 0.5) * step * 0.8;
+          var p2 = polar(cx, cy, rr2, ang2);
+          g.appendChild(svgEl('circle', { cx: p2.x.toFixed(2), cy: p2.y.toFixed(2), r: 2, fill: dish.plateLine, opacity: .5 }));
+        }
+        svg.appendChild(g);
+      }
+    }
+  }
+
+  function pieceWord(n){
+    var mod10 = n % 10, mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 14) return 'кусочков';
+    if (mod10 === 1) return 'кусочек';
+    if (mod10 >= 2 && mod10 <= 4) return 'кусочка';
+    return 'кусочков';
+  }
+
+  function update(){
+    var dish = DISHES[currentDish];
+    var rawN = parseInt(numInput.value, 10);
+    var rawD = parseInt(denInput.value, 10);
+
+    var d = isFinite(rawD) ? rawD : 1;
+    d = Math.max(1, Math.min(MAX_DEN, d));
+
+    var n = isFinite(rawN) ? rawN : 0;
+    var clampedNote = '';
+    if (n < 0) n = 0;
+    if (n > d){
+      n = d;
+      clampedNote = 'Числитель не может быть больше знаменателя для одного блюда — показываю максимум.';
+    }
+    if (rawD > MAX_DEN){
+      clampedNote = 'Больше ' + MAX_DEN + ' кусочков не поместится на тарелке — ограничила знаменатель.';
+    }
+    if (rawD < 1 || !isFinite(rawD)){
+      clampedNote = 'Знаменатель должен быть хотя бы 1.';
+    }
+
+    if (denInput.value !== String(d)) denInput.value = d;
+    if (numInput.value !== String(n)) numInput.value = n;
+
+    hint.textContent = clampedNote;
+    hint.className = 'hint' + (clampedNote ? ' warn' : '');
+
+    render(currentDish, n, d);
+
+    readoutBig.textContent = n + '/' + d;
+    readoutSmall.textContent = 'выложено ' + n + ' ' + pieceWord(n) + ' из ' + d;
+
+    var g1 = gcd(n, d) || 1;
+    var simplified = (n > 0 && n < d && g1 > 1) ? (n / g1) + '/' + (d / g1) : null;
+
+    var base = 'Дробь <b>' + n + '/' + d + '</b> — это ' + dish.nomEn + ', которую разрезали на <b>' + d + '</b> ' + pieceWord(d) + '. ';
+    if (n === 0){
+      sentence.innerHTML = base + 'Пока ничего не выложили — тарелка пустая.';
+    } else if (n === d){
+      sentence.innerHTML = base + 'Выложили все ' + d + ' ' + pieceWord(d) + ' — ' + dish.nomEn + ' собран' + dish.wordEnding + ' целиком.';
+    } else {
+      sentence.innerHTML = base +
+        'Выложено <b>' + n + '</b> ' + pieceWord(n) + ' из ' + d +
+        (simplified ? ' — то же самое, что <b>' + simplified + '</b>.' : '.');
+    }
+  }
+
+  numInput.addEventListener('input', update);
+  denInput.addEventListener('input', update);
+
+  document.querySelectorAll('.step-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var el = document.getElementById(btn.getAttribute('data-target'));
+      var dir = parseInt(btn.getAttribute('data-dir'), 10);
+      var v = parseInt(el.value, 10); if (!isFinite(v)) v = 0;
+      el.value = v + dir;
+      update();
+    });
+  });
+
+  presets.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      numInput.value = btn.getAttribute('data-n');
+      denInput.value = btn.getAttribute('data-d');
+      update();
+    });
+  });
+
+  dishToggleBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      currentDish = btn.getAttribute('data-dish');
+      dishToggleBtns.forEach(function(b){
+        var active = b === btn;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      boardPanel.classList.toggle('cake-mode', currentDish === 'cake');
+      update();
+    });
+  });
+
+  update();
+
+  /* ---------- Сложение и вычитание (page: addsub) ---------- */
+  (function(){
+    var svg2 = document.getElementById('asSvg');
+    if (!svg2) return;
+    var numA = document.getElementById('asNumA');
+    var denA = document.getElementById('asDenA');
+    var numB = document.getElementById('asNumB');
+    var denB = document.getElementById('asDenB');
+    var opBtns = document.querySelectorAll('#asOp button');
+    var hint2 = document.getElementById('asHint');
+    var readoutBig2 = document.getElementById('asReadoutBig');
+    var readoutSmall2 = document.getElementById('asReadoutSmall');
+    var sentence2 = document.getElementById('asSentence');
+    var currentOp = 'add';
+
+    var DISH_A = {
+      key: 'pizza', gradId: 'addA', outline: '#4A2417',
+      plateEmpty: '#3A2416', plateLine: '#1E0F07',
+      crust: '#E8A94E', crustLight: '#F6CE86',
+      base: '#C1432B', filling: '#FFC24A', fillingLight: '#FFE29A',
+      toppings: ['pepperoni', 'basil']
+    };
+    var DISH_B = {
+      key: 'pizza', gradId: 'addB', outline: '#3E2A1C',
+      plateEmpty: '#3A2416', plateLine: '#1E0F07',
+      crust: '#DCC17C', crustLight: '#EEDDA6',
+      base: '#7C8C4A', filling: '#D7DD9E', fillingLight: '#ECEFC4',
+      toppings: ['mushroom', 'basil']
+    };
+
+    function gcd2(a, b){ return b === 0 ? a : gcd2(b, a % b); }
+    function lcm2(a, b){ return (a * b) / gcd2(a, b); }
+
+    function addDefsFor(dish){
+      var defs = svgEl('defs', {});
+      var fg = svgEl('radialGradient', { id: 'fillingGrad-' + dish.gradId, cx: '35%', cy: '28%', r: '80%' });
+      fg.appendChild(svgEl('stop', { offset: '0%', 'stop-color': dish.fillingLight }));
+      fg.appendChild(svgEl('stop', { offset: '100%', 'stop-color': dish.filling }));
+      defs.appendChild(fg);
+      var cg = svgEl('radialGradient', { id: 'crustGrad-' + dish.gradId, cx: '32%', cy: '25%', r: '85%' });
+      cg.appendChild(svgEl('stop', { offset: '0%', 'stop-color': dish.crustLight }));
+      cg.appendChild(svgEl('stop', { offset: '100%', 'stop-color': dish.crust }));
+      defs.appendChild(cg);
+      svg2.appendChild(defs);
+    }
+
+    function drawPlate2(dish, cx, cy, r){
+      svg2.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r + 10, fill: dish.plateLine }));
+      svg2.appendChild(svgEl('circle', { cx: cx, cy: cy, r: r + 6, fill: dish.plateEmpty }));
+    }
+
+    function drawSlice2(dish, cx, cy, r, start, end, sliceIndex, ghost){
+      var g = svgEl('g', { class: 'slice' });
+      var width = end - start;
+      var op = ghost ? .28 : 1;
+      g.appendChild(svgEl('path', { d: sectorPath(cx, cy, r + 3, start, end), fill: 'url(#crustGrad-' + dish.gradId + ')', stroke: dish.outline, 'stroke-width': 3, opacity: op }));
+      g.appendChild(svgEl('path', { d: sectorPath(cx, cy, r - 6, start, end), fill: dish.base, stroke: dish.outline, 'stroke-width': 1.4, opacity: op }));
+      g.appendChild(svgEl('path', { d: sectorPath(cx, cy, r - 14, start, end), fill: 'url(#fillingGrad-' + dish.gradId + ')', opacity: op }));
+      if (ghost){
+        g.appendChild(svgEl('path', { d: sectorPath(cx, cy, r + 3, start, end), fill: 'none', stroke: dish.outline, 'stroke-width': 1.6, 'stroke-dasharray': '4 3', opacity: .6 }));
+        return g;
+      }
+      var toppingCount = width > 55 ? 3 : width > 30 ? 2 : 1;
+      var toppingSize = width > 30 ? 11 : 8;
+      for (var t = 0; t < toppingCount; t++){
+        var rr = (r - 14) * (0.28 + seeded(sliceIndex, t * 5 + 1) * 0.55);
+        var ang = start + (t + 0.5) * (width / toppingCount) + (seeded(sliceIndex, t * 5 + 3) - 0.5) * (width / toppingCount) * 0.7;
+        var p = polar(cx, cy, rr, ang);
+        var type = dish.toppings[(sliceIndex + t) % dish.toppings.length];
+        addTopping(g, type, p.x, p.y, toppingSize, ang, dish);
+      }
+      return g;
+    }
+
+    function computeParts(){
+      var a = parseInt(numA.value, 10) || 0, b = Math.max(1, parseInt(denA.value, 10) || 1);
+      var c = parseInt(numB.value, 10) || 0, d = Math.max(1, parseInt(denB.value, 10) || 1);
+      a = Math.max(0, Math.min(a, b));
+      c = Math.max(0, Math.min(c, d));
+      if (numA.value !== String(a)) numA.value = a;
+      if (denA.value !== String(b)) denA.value = b;
+      if (numB.value !== String(c)) numB.value = c;
+      if (denB.value !== String(d)) denB.value = d;
+      var L = lcm2(b, d);
+      return { a: a, b: b, c: c, d: d, L: L, na: a * (L / b), nc: c * (L / d) };
+    }
+
+    function update2(){
+      var p = computeParts();
+      var note = '';
+      if (p.L > 24){
+        note = 'Знаменатели дают слишком большой общий знаменатель (максимум 24 кусочка на тарелке) — выбери другие дроби.';
+      }
+
+      svg2.innerHTML = '';
+      var cx = 160, cy = 160, r = 132;
+
+      if (!note){
+        addDefsFor(DISH_A);
+        addDefsFor(DISH_B);
+        drawPlate2(DISH_A, cx, cy, r);
+        var step = 360 / p.L;
+
+        if (currentOp === 'add'){
+          var sum = p.na + p.nc;
+          if (sum > p.L){
+            note = 'Сумма больше одной целой пиццы — пока показываю сложение в пределах одной штуки. Попробуй дроби поменьше.';
+          } else {
+            for (var i = 0; i < p.L; i++){
+              var start = i * step, end = start + step;
+              if (i < p.na){
+                svg2.appendChild(drawSlice2(DISH_A, cx, cy, r, start, end, i, false));
+              } else if (i < p.na + p.nc){
+                svg2.appendChild(drawSlice2(DISH_B, cx, cy, r, start, end, i, false));
+              }
+            }
+            var g1 = gcd2(sum, p.L) || 1;
+            var simp = (sum > 0 && sum < p.L && g1 > 1) ? (sum / g1) + '/' + (p.L / g1) : (sum === p.L ? '1 целая' : null);
+            readoutBig2.textContent = p.a + '/' + p.b + ' + ' + p.c + '/' + p.d + ' = ' + sum + '/' + p.L;
+            readoutSmall2.textContent = simp ? ('это то же самое, что ' + simp) : '';
+            sentence2.innerHTML = 'Приводим к общему знаменателю <b>' + p.L + '</b>: <b>' + p.na + '/' + p.L + '</b> + <b>' + p.nc + '/' + p.L + '</b> = <b>' + sum + '/' + p.L + '</b>' + (simp ? ' = <b>' + simp + '</b>' : '') + '.';
+          }
+        } else {
+          if (p.na < p.nc){
+            note = 'Из первой дроби нельзя вычесть бо́льшую — поменяй дроби местами.';
+          } else {
+            var diff = p.na - p.nc;
+            for (var j = 0; j < p.L; j++){
+              var s2 = j * step, e2 = s2 + step;
+              if (j < diff){
+                svg2.appendChild(drawSlice2(DISH_A, cx, cy, r, s2, e2, j, false));
+              } else {
+                var mid2 = (s2 + e2) / 2;
+                var eg = svgEl('g', { class: 'slice' });
+                for (var ec = 0; ec < 2; ec++){
+                  var rr2 = r * (0.3 + seeded(j, ec + 20) * 0.5);
+                  var ang2 = mid2 + (seeded(j, ec + 30) - 0.5) * step * 0.8;
+                  var p2 = polar(cx, cy, rr2, ang2);
+                  eg.appendChild(svgEl('circle', { cx: p2.x.toFixed(2), cy: p2.y.toFixed(2), r: 2, fill: DISH_A.plateLine, opacity: .5 }));
+                }
+                svg2.appendChild(eg);
+              }
+            }
+            var g2 = gcd2(diff, p.L) || 1;
+            var simp2 = (diff > 0 && diff < p.L && g2 > 1) ? (diff / g2) + '/' + (p.L / g2) : null;
+            readoutBig2.textContent = p.a + '/' + p.b + ' − ' + p.c + '/' + p.d + ' = ' + diff + '/' + p.L;
+            readoutSmall2.textContent = simp2 ? ('это то же самое, что ' + simp2) : '';
+            sentence2.innerHTML = 'Приводим к общему знаменателю <b>' + p.L + '</b>: <b>' + p.na + '/' + p.L + '</b> − <b>' + p.nc + '/' + p.L + '</b> = <b>' + diff + '/' + p.L + '</b>' + (simp2 ? ' = <b>' + simp2 + '</b>' : '') + ' — вот что осталось.';
+          }
+        }
+      }
+
+      if (note){
+        drawPlate2(DISH_A, cx, cy, r);
+        readoutBig2.textContent = '';
+        readoutSmall2.textContent = '';
+        sentence2.textContent = '';
+      }
+
+      hint2.textContent = note;
+      hint2.className = 'hint' + (note ? ' warn' : '');
+    }
+
+    [numA, denA, numB, denB].forEach(function(el){ el.addEventListener('input', update2); });
+    opBtns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        currentOp = btn.getAttribute('data-op');
+        opBtns.forEach(function(b){ b.classList.toggle('active', b === btn); });
+        update2();
+      });
+    });
+
+    update2();
+  })();
+})();
+
+/* ---------- section navigation + burger menu ---------- */
+(function(){
+  var navBtns = document.querySelectorAll('.nav-btn');
+  var pages = document.querySelectorAll('.page');
+  var menuToggle = document.getElementById('menuToggle');
+  var sideNav = document.getElementById('sideNav');
+
+  function openMenu(){
+    sideNav.hidden = false;
+    menuToggle.setAttribute('aria-expanded', 'true');
+  }
+  function closeMenu(){
+    sideNav.hidden = true;
+    menuToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  menuToggle.addEventListener('click', function(){
+    if (sideNav.hidden) openMenu(); else closeMenu();
+  });
+  document.addEventListener('click', function(e){
+    if (!sideNav.hidden && !sideNav.contains(e.target) && !menuToggle.contains(e.target)){
+      closeMenu();
+    }
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closeMenu();
+  });
+
+  navBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var target = btn.getAttribute('data-page');
+      pages.forEach(function(p){ p.hidden = (p.getAttribute('data-page') !== target); });
+      navBtns.forEach(function(b){ b.classList.toggle('active', b === btn); });
+      closeMenu();
+      window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    });
+  });
+})();
+
+/* ---------- task generator ---------- */
+(function(){
+  var TASKS = {
+    basics: [
+      { q: 'У пиццы 8 кусочков, съели 3. Какую часть пиццы съели?', a: '3/8' },
+      { q: 'Тортик разрезали на 6 частей, выложили 5. Какой дробью показать выложенную часть?', a: '5/6' },
+      { q: 'Пиццу разрезали на 4 части и съели её целиком. Какой дробью это записать?', a: '4/4 (это целая пицца, 1)' },
+      { q: 'Пиццу разрезали на 8 кусочков. Сначала выложили 3, потом ещё 2. Сколько всего кусочков теперь выложено и какой дробью это записать?', a: '5 кусочков — 5/8' },
+      { q: 'Что показывает число снизу в записи дроби (знаменатель)?', a: 'На сколько равных частей разделили целое' }
+    ],
+    types: [
+      { q: 'Дробь 5/3 — правильная или неправильная? Почему?', a: 'Неправильная: числитель больше знаменателя' },
+      { q: 'Переведи в смешанное число: 11/4', a: '2 целых 3/4 (11 ÷ 4 = 2, остаток 3)' },
+      { q: 'Переведи в неправильную дробь: 3 целых 2/5', a: '17/5 (3×5+2=17)' },
+      { q: 'Дробь 7/9 — правильная или неправильная?', a: 'Правильная: числитель меньше знаменателя' },
+      { q: 'Переведи в смешанное число и сократи: 22/6', a: '22/6 = 11/3 = 3 целых 2/3' }
+    ],
+    property: [
+      { q: 'Сократи дробь 12/18', a: 'НОД(12,18)=6 → 2/3' },
+      { q: 'Расширь дробь 2/5 так, чтобы знаменатель стал 20', a: '×4 → 8/20' },
+      { q: 'Сократи дробь 25/40', a: 'НОД(25,40)=5 → 5/8' },
+      { q: 'Верно ли, что 3/4 = 9/12? Докажи', a: 'Да: 3×3=9, 4×3=12 — умножили на одно и то же число' },
+      { q: 'Сократи дробь 16/24 до несократимой', a: 'НОД(16,24)=8 → 2/3' }
+    ],
+    common: [
+      { q: 'Приведи 1/4 и 1/6 к общему знаменателю', a: 'НОК(4,6)=12 → 3/12 и 2/12' },
+      { q: 'Сравни: 5/6 и 7/9 — какая больше?', a: 'Общий знаменатель 18: 15/18 и 14/18 → 5/6 больше' },
+      { q: 'Найди НОК(6, 8) через разложение на простые множители', a: '6=2×3, 8=2×2×2 → общая 2 один раз, плюс лишние 2 и 2 из восьмёрки, плюс 3 → 2×2×2×3=24' },
+      { q: 'Приведи 3/10 и 7/15 к общему знаменателю', a: 'НОК(10,15)=30 → 9/30 и 14/30' },
+      { q: 'Сравни: 2/3 и 3/5 — какая больше?', a: 'Общий знаменатель 15: 10/15 и 9/15 → 2/3 больше' }
+    ],
+    addsub: [
+      { q: 'Вычисли: 1/4 + 1/6', a: 'Общий знаменатель 12: 3/12+2/12=5/12' },
+      { q: 'Вычисли: 5/6 − 1/3', a: 'Общий знаменатель 6: 5/6−2/6=3/6=1/2' },
+      { q: 'Вычисли: 2/5 + 3/10', a: 'Общий знаменатель 10: 4/10+3/10=7/10' },
+      { q: 'Вычисли: 1 целая 1/3 + 2/3', a: '1 3/3 = 2' },
+      { q: 'Вычисли: 7/8 − 3/4', a: 'Общий знаменатель 8: 7/8−6/8=1/8' }
+    ],
+    muldiv: [
+      { q: 'Вычисли: 2/3 × 3/5', a: '6/15 = 2/5' },
+      { q: 'Вычисли: 4/7 ÷ 2/3', a: '4/7×3/2=12/14=6/7' },
+      { q: 'Вычисли: 5/6 × 12', a: '60/6=10' },
+      { q: 'Вычисли: 3/4 ÷ 3/8', a: '3/4×8/3=24/12=2' },
+      { q: 'Вычисли: 1/2 × 2/3 × 3/4', a: '6/24=1/4' }
+    ],
+    applied: [
+      { q: 'Найди 2/5 от 45', a: '45÷5×2=18' },
+      { q: 'Число, если 3/7 его равны 21 — чему равно число?', a: '21÷3×7=49' },
+      { q: 'Найди 5/8 от 64', a: '64÷8×5=40' },
+      { q: 'В классе 24 ученика, 3/4 из них — девочки. Сколько девочек?', a: '18' },
+      { q: 'Число, если 2/9 его равны 14 — чему равно число?', a: '14÷2×9=63' }
+    ],
+    mistakes: [
+      { q: 'Найди ошибку: 1/3 + 1/4 = 2/7', a: 'Нельзя складывать числители и знаменатели отдельно. Нужен общий знаменатель 12: 4/12+3/12=7/12' },
+      { q: 'Найди ошибку: сократили 6/8 и получили 3/5', a: 'Нужно делить и числитель, и знаменатель на одно число: 6/8=3/4' },
+      { q: 'Найди ошибку: 2/3 ÷ 1/2 = 2/6', a: 'Забыли перевернуть вторую дробь: 2/3×2/1=4/3' },
+      { q: 'Найди ошибку: сравнили 3/4 и 5/7 и решили, что 5/7 больше, потому что 5>3', a: 'Нужно привести к общему знаменателю: 21/28 и 20/28 → на самом деле 3/4 больше' },
+      { q: 'Проверь: смешанное число 1 целая 2/3 записали как 5/3 — это ошибка?', a: 'Нет, это верно: 1×3+2=5' }
+    ]
+  };
+
+  document.querySelectorAll('.task-gen').forEach(function(box){
+    var topic = box.getAttribute('data-topic');
+    var list = TASKS[topic] || [];
+    var qEl = box.querySelector('.task-q');
+    var aEl = box.querySelector('.task-a');
+    var showBtn = box.querySelector('.show-answer');
+    var rerollBtn = box.querySelector('.reroll');
+    var lastIdx = -1;
+
+    function pick(){
+      if (!list.length) return;
+      var idx;
+      do { idx = Math.floor(Math.random() * list.length); } while (list.length > 1 && idx === lastIdx);
+      lastIdx = idx;
+      qEl.textContent = list[idx].q;
+      aEl.textContent = 'Ответ: ' + list[idx].a;
+      aEl.hidden = true;
+      showBtn.textContent = 'Показать ответ';
+    }
+
+    showBtn.addEventListener('click', function(){
+      aEl.hidden = !aEl.hidden;
+      showBtn.textContent = aEl.hidden ? 'Показать ответ' : 'Скрыть ответ';
+    });
+    rerollBtn.addEventListener('click', pick);
+
+    pick();
+  });
+})();
+</script>
+
+</body></html>
